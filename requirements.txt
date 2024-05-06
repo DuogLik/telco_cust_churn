@@ -1,0 +1,16 @@
+numpy
+pandas
+matplotlib
+seaborn
+xgboost
+inflection
+dython
+shap
+sklearn
+imblearn
+tensorflow
+matplotlib.ticker
+version-control
+plotly
+iter-tools
+

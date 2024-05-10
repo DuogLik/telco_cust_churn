@@ -152,7 +152,10 @@ def main():
         })
 
         # Kiểm tra xem dữ liệu đầu vào có đủ để dự đoán hay không
-        if input_data[['tenure', 'monthly_charges', 'total_charges']].isnull().values.any():
+        if (PhoneService == " " or Contract == " " or PaperlessBilling == '' or PaymentMethod == '' or gender == ''
+                or SeniorCitizen == '' or Partner == '' or Dependents == '' or MultipleLines == '' or InternetService == ''
+                or OnlineSecurity == '' or OnlineBackup == '' or DeviceProtection == '' or TechSupport == '' or StreamingTV == ''
+                or StreamingMovies == ''):
             st.warning("Please fill in all numerical input fields to make a prediction.")
         else:
             # Lựa chọn model

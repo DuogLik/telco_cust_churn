@@ -9,17 +9,17 @@ import matplotlib.pyplot as plt
 
 # Load các mô hình và dữ liệu test
 logistic_regression_model = pickle.load(
-    open("C:/Users/assus/PyCharmProject/Customers_Churn/MODELS/logistic_regression_model.pkl", "rb"))
-knn_model = pickle.load(open("C:/Users/assus/PyCharmProject/Customers_Churn/MODELS/knn_model.pkl", "rb"))
+    open("logistic_regression_model.pkl", "rb"))
+knn_model = pickle.load(open("knn_model.pkl", "rb"))
 random_forest_model = pickle.load(
-    open("C:/Users/assus/PyCharmProject/Customers_Churn/MODELS/random_forest_model.pkl", "rb"))
+    open("random_forest_model.pkl", "rb"))
 decision_tree_model = pickle.load(
-    open("C:/Users/assus/PyCharmProject/Customers_Churn/MODELS/decision_tree_model.pkl", "rb"))
-xgboost_model = pickle.load(open("C:/Users/assus/PyCharmProject/Customers_Churn/MODELS/xgboost_model.pkl", "rb"))
-nn_model = load_model("C:/Users/assus/PyCharmProject/Customers_Churn/MODELS/neural_network_model.keras")
-cnn_model = load_model("C:/Users/assus/PyCharmProject/Customers_Churn/MODELS/cnn_model.keras")
-test_data = pd.read_csv("C:/Users/assus/PyCharmProject/Customers_Churn/data/test.csv")
-full_data = pd.read_csv("C:/Users/assus/PyCharmProject/Customers_Churn/data/telco_churn_data_cleaned_encoded.csv")
+    open("decision_tree_model.pkl", "rb"))
+xgboost_model = pickle.load(open("xgboost_model.pkl", "rb"))
+nn_model = load_model("neural_network_model.keras")
+cnn_model = load_model("cnn_model.keras")
+test_data = pd.read_csv("test.csv")
+full_data = pd.read_csv("telco_churn_data_cleaned_encoded.csv")
 
 
 # Hàm để dự đoán churn bằng các mô hình

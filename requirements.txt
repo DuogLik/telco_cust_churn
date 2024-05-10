@@ -6,7 +6,7 @@ xgboost
 inflection
 dython
 shap
-sklearn
+scikit-learn
 imblearn
 tensorflow
 matplotlib.ticker

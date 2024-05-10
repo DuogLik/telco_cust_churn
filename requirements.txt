@@ -8,7 +8,7 @@ dython
 shap
 scikit-learn
 imblearn
-tensorflow>=2.7.0,<2.8.0   # Update TensorFlow version range as needed
+tensorflow>=2.7.0,<3.0.0   # Adjust TensorFlow version range as needed
 version-control
 plotly
 iter-tools

@@ -8,9 +8,7 @@ dython
 shap
 scikit-learn
 imblearn
-tensorflow
-matplotlib.ticker
+tensorflow==2.7.0   # Adjust the TensorFlow version as needed
 version-control
 plotly
 iter-tools
-

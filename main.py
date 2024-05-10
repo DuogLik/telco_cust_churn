@@ -156,7 +156,7 @@ def main():
                 or SeniorCitizen == '' or Partner == '' or Dependents == '' or MultipleLines == '' or InternetService == ''
                 or OnlineSecurity == '' or OnlineBackup == '' or DeviceProtection == '' or TechSupport == '' or StreamingTV == ''
                 or StreamingMovies == ''):
-            st.warning("Please fill in all numerical input fields to make a prediction.")
+            st.warning("Please fill in all input fields to make a prediction.")
         else:
             # Lựa chọn model
             model_name = st.sidebar.selectbox("Select Model",

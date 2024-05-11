@@ -147,7 +147,7 @@ def main():
 
             # Code dự đoán
             if st.sidebar.button("Predict"):
-                prediction = predict_churn(input_data_scaled, model_name)
+                prediction = predict_churn(input_data, model_name)
                 # Hiển thị kết quả
                 if isinstance(prediction, list) or isinstance(prediction, np.ndarray):
                     prediction = prediction[0] * 100  # Lấy xác suất dự đoán từ danh sách xác suất
@@ -178,7 +178,8 @@ def main():
         elif model_name == "Neural Network":
             test_predictions = nn_model.predict(test_data.drop(columns=['churn']))
         elif model_name == "CNN":
-            test_predictions = cnn_model.predict(test_data.drop(columns=['churn']))
+            test_data_scaled = scaler.transform(test_data.drop(columns=['churn']))
+            test_predictions = cnn_model.predict(test_data_scaled.reshape(test_data_scaled.shape[0], test_data_scaled.shape[1], 1))
 
         actual_labels = test_data['churn']
         roc_auc = roc_auc_score(actual_labels, test_predictions)

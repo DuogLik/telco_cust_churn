@@ -164,12 +164,8 @@ def main():
                                   ["Logistic Regression", "KNN", "Random Forest", "Decision Tree", "XGBoost",
                                    "Neural Network", "CNN"])
         
-        # Tạo scaler dựa trên tập dữ liệu test
         scaler = MinMaxScaler()
-        scaler.fit(test_data.drop(columns=['churn']))
-        
-        # Scaling dữ liệu
-        input_data_scaled = scaler.transform(test_data.drop(columns=['churn']))
+        input_data_scaled = scaler.fit_transform(test_data.drop(columns=['churn']))
     
         # Dự đoán churn với model tương ứng
         if model_name == "Logistic Regression":

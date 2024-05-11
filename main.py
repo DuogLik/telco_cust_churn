@@ -167,6 +167,7 @@ def main():
         # Tạo scaler dựa trên tập dữ liệu test
         scaler = MinMaxScaler()
         scaler.fit(test_data.drop(columns=['churn']))
+        input_data = test_data.drop(columns=['churn'])
         # Scaling dữ liệu
         input_data_scaled = scaler.transform(input_data)
     

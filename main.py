@@ -2,7 +2,6 @@ import pickle
 import streamlit as st
 import pandas as pd
 import numpy as np
-from sklearn.impute import SimpleImputer
 from sklearn.metrics import roc_auc_score, roc_curve, auc
 from keras.models import load_model
 import matplotlib.pyplot as plt

@@ -17,16 +17,14 @@ nn_model = load_model("neural_network_model.keras")
 cnn_model = load_model("cnn_model.keras")
 test_data = pd.read_csv("test.csv")
 
+# Tạo scaler dựa trên tập dữ liệu test
+scaler = MinMaxScaler()
+scaler.fit(test_data.drop(columns=['churn']))
+
 # Hàm để dự đoán churn bằng các mô hình
 def predict_churn(input_data, model_name):
-    # Scaling all variables to a range of 0 to 1 based on test data min and max
-    scaler = MinMaxScaler()
-    scaler.fit(test_data.drop(columns=['churn']))
+    # Scaling dữ liệu
     input_data_scaled = scaler.transform(input_data)
-
-    # For CNN model, reshape input data to include the time dimension
-    if model_name == "CNN":
-        input_data_scaled = input_data_scaled.reshape(input_data_scaled.shape[0], input_data_scaled.shape[1], 1)
 
     # Dự đoán churn với model tương ứng
     if model_name == "Logistic Regression":
@@ -42,6 +40,7 @@ def predict_churn(input_data, model_name):
     elif model_name == "Neural Network":
         prediction = nn_model.predict(input_data_scaled)
     elif model_name == "CNN":
+        input_data_scaled = input_data_scaled.reshape(input_data_scaled.shape[0], input_data_scaled.shape[1], 1)
         prediction = cnn_model.predict(input_data_scaled)
 
     return prediction
@@ -147,6 +146,7 @@ def main():
 
             # Code dự đoán
             if st.sidebar.button("Predict"):
+                # Dự đoán
                 prediction = predict_churn(input_data, model_name)
                 # Hiển thị kết quả
                 if isinstance(prediction, list) or isinstance(prediction, np.ndarray):
@@ -158,6 +158,7 @@ def main():
                 else:
                     st.error('CHURN')
 
+
     elif task == "Performance on Test Dataset":
         st.subheader("Performance on The Test Dataset (ROC AUC Score):")
         model_name = st.selectbox("Select Model",
@@ -165,21 +166,13 @@ def main():
                                    "Neural Network", "CNN"])
 
         # Tính toán và hiển thị ROC AUC score của mô hình trên tập test
-        if model_name == "Logistic Regression":
-            test_predictions = logistic_regression_model.predict_proba(test_data.drop(columns=['churn']))[:, 1]
-        elif model_name == "KNN":
-            test_predictions = knn_model.predict_proba(test_data.drop(columns=['churn']))[:, 1]
-        elif model_name == "Random Forest":
-            test_predictions = random_forest_model.predict_proba(test_data.drop(columns=['churn']))[:, 1]
-        elif model_name == "Decision Tree":
-            test_predictions = decision_tree_model.predict_proba(test_data.drop(columns=['churn']))[:, 1]
-        elif model_name == "XGBoost":
-            test_predictions = xgboost_model.predict_proba(test_data.drop(columns=['churn']))[:, 1]
-        elif model_name == "Neural Network":
-            test_predictions = nn_model.predict(test_data.drop(columns=['churn']))
-        elif model_name == "CNN":
+        if model_name != "CNN":
+            test_predictions = predict_churn(test_data.drop(columns=['churn']), model_name)
+        else:
+            # Đảm bảo rằng dữ liệu được scale và reshape nếu là mô hình CNN
             test_data_scaled = scaler.transform(test_data.drop(columns=['churn']))
-            test_predictions = cnn_model.predict(test_data_scaled.reshape(test_data_scaled.shape[0], test_data_scaled.shape[1], 1))
+            test_data_reshaped = test_data_scaled.reshape(test_data_scaled.shape[0], test_data_scaled.shape[1], 1)
+            test_predictions = predict_churn(test_data_reshaped, model_name)
 
         actual_labels = test_data['churn']
         roc_auc = roc_auc_score(actual_labels, test_predictions)

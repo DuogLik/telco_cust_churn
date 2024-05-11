@@ -2,19 +2,16 @@ import pickle
 import streamlit as st
 import pandas as pd
 import numpy as np
+from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import roc_auc_score, roc_curve, auc
 from keras.models import load_model
 import matplotlib.pyplot as plt
-from sklearn.preprocessing import MinMaxScaler
 
 # Load các mô hình và dữ liệu test
-logistic_regression_model = pickle.load(
-    open("logistic_regression_model.pkl", "rb"))
+logistic_regression_model = pickle.load(open("logistic_regression_model.pkl", "rb"))
 knn_model = pickle.load(open("knn_model.pkl", "rb"))
-random_forest_model = pickle.load(
-    open("random_forest_model.pkl", "rb"))
-decision_tree_model = pickle.load(
-    open("decision_tree_model.pkl", "rb"))
+random_forest_model = pickle.load(open("random_forest_model.pkl", "rb"))
+decision_tree_model = pickle.load(open("decision_tree_model.pkl", "rb"))
 xgboost_model = pickle.load(open("xgboost_model.pkl", "rb"))
 nn_model = load_model("neural_network_model.keras")
 cnn_model = load_model("cnn_model.keras")
@@ -22,26 +19,9 @@ test_data = pd.read_csv("test.csv")
 
 # Hàm để dự đoán churn bằng các mô hình
 def predict_churn(input_data, model_name):
-    input_df = pd.DataFrame(input_data, columns=[
-        'tenure', 'monthly_charges', 'total_charges', 'senior_citizen',
-        'phone_service_No', 'phone_service_Yes', 'contract_Month-to-month', 'contract_One year', 'contract_Two year',
-        'paperless_billing_No', 'paperless_billing_Yes',
-        'payment_method_Bank transfer (automatic)', 'payment_method_Credit card (automatic)',
-        'payment_method_Electronic check',
-        'payment_method_Mailed check', 'gender_Female', 'gender_Male', 'partner_No', 'partner_Yes', 'dependents_No',
-        'dependents_Yes',
-        'multiple_lines_No', 'multiple_lines_No phone service', 'multiple_lines_Yes',
-        'internet_service_DSL', 'internet_service_Fiber optic', 'internet_service_No',
-        'online_security_No', 'online_security_No internet service', 'online_security_Yes',
-        'online_backup_No', 'online_backup_No internet service', 'online_backup_Yes',
-        'device_protection_No', 'device_protection_No internet service', 'device_protection_Yes',
-        'tech_support_No', 'tech_support_No internet service', 'tech_support_Yes',
-        'streaming_tv_No', 'streaming_tv_No internet service', 'streaming_tv_Yes',
-        'streaming_movies_No', 'streaming_movies_No internet service', 'streaming_movies_Yes'])
-    
     # Scaling all variables to a range of 0 to 1 based on test data min and max
     scaler = MinMaxScaler()
-    scaler.fit(test_data)
+    scaler.fit(test_data.drop(columns=['churn']))
     input_data_scaled = scaler.transform(input_data)
 
     # For CNN model, reshape input data to include the time dimension
@@ -167,7 +147,7 @@ def main():
 
             # Code dự đoán
             if st.sidebar.button("Predict"):
-                prediction = predict_churn(input_data, model_name)
+                prediction = predict_churn(input_data_scaled, model_name)
                 # Hiển thị kết quả
                 if isinstance(prediction, list) or isinstance(prediction, np.ndarray):
                     prediction = prediction[0] * 100  # Lấy xác suất dự đoán từ danh sách xác suất
@@ -221,4 +201,4 @@ def main():
         st.pyplot(fig)
 
 if __name__ == "__main__":
-        main()
+    main()

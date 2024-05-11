@@ -163,22 +163,29 @@ def main():
         model_name = st.selectbox("Select Model",
                                   ["Logistic Regression", "KNN", "Random Forest", "Decision Tree", "XGBoost",
                                    "Neural Network", "CNN"])
+        
+        # Tạo scaler dựa trên tập dữ liệu test
+        scaler = MinMaxScaler()
+        scaler.fit(test_data.drop(columns=['churn']))
+        # Scaling dữ liệu
+        input_data_scaled = scaler.transform(input_data)
     
-        # Load dự đoán từ các mô hình đã lưu
+        # Dự đoán churn với model tương ứng
         if model_name == "Logistic Regression":
-            predictions = logistic_regression_predictions
+            predictions = logistic_regression_model.predict_proba(input_data_scaled)[:, 1]
         elif model_name == "KNN":
-            predictions = knn_predictions
+            predictions = knn_model.predict_proba(input_data_scaled)[:, 1]
         elif model_name == "Random Forest":
-            predictions = random_forest_predictions
+            predictions = random_forest_model.predict_proba(input_data_scaled)[:, 1]
         elif model_name == "Decision Tree":
-            predictions = decision_tree_predictions
+            predictions = decision_tree_model.predict_proba(input_data_scaled)[:, 1]
         elif model_name == "XGBoost":
-            predictions = xgboost_predictions
+            predictions = xgboost_model.predict_proba(input_data_scaled)[:, 1]
         elif model_name == "Neural Network":
-            predictions = neural_network_predictions
+            predictions = nn_model.predict(input_data_scaled)
         elif model_name == "CNN":
-            predictions = cnn_predictions
+            input_data_scaled = input_data_scaled.reshape(input_data_scaled.shape[0], input_data_scaled.shape[1], 1)
+            predictions = cnn_model.predict(input_data_scaled)
         
         actual_labels = test_data['churn']
         roc_auc = roc_auc_score(actual_labels, predictions)

@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import roc_auc_score, roc_curve, auc
 
 # Load các mô hình và dữ liệu test
-logistic_regression_model = pickle.load(open("C:/Users/assus/PyCharmProject/Customers_Churn/MODELS/logistic_regression_model.pkl", "rb"))
+logistic_regression_model = pickle.load(open("logistic_regression_model.pkl", "rb"))
 knn_model = pickle.load(open("C:/Users/assus/PyCharmProject/Customers_Churn/MODELS/knn_model.pkl", "rb"))
 random_forest_model = pickle.load(open("C:/Users/assus/PyCharmProject/Customers_Churn/MODELS/random_forest_model.pkl", "rb"))
 decision_tree_model = pickle.load(open("C:/Users/assus/PyCharmProject/Customers_Churn/MODELS/decision_tree_model.pkl", "rb"))

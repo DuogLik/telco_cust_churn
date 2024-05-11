@@ -17,12 +17,11 @@ nn_model = load_model("neural_network_model.keras")
 cnn_model = load_model("cnn_model.keras")
 test_data = pd.read_csv("test.csv")
 
-# Tạo scaler dựa trên tập dữ liệu test
-scaler = MinMaxScaler()
-scaler.fit(test_data.drop(columns=['churn']))
-
 # Hàm để dự đoán churn bằng các mô hình
 def predict_churn(input_data, model_name):
+    # Tạo scaler dựa trên tập dữ liệu test
+    scaler = MinMaxScaler()
+    scaler.fit(test_data.drop(columns=['churn']))
     # Scaling dữ liệu
     input_data_scaled = scaler.transform(input_data)
 
@@ -164,24 +163,31 @@ def main():
         model_name = st.selectbox("Select Model",
                                   ["Logistic Regression", "KNN", "Random Forest", "Decision Tree", "XGBoost",
                                    "Neural Network", "CNN"])
-
-        # Tính toán và hiển thị ROC AUC score của mô hình trên tập test
-        if model_name != "CNN":
-            test_predictions = predict_churn(test_data.drop(columns=['churn']), model_name)
-        else:
-            # Đảm bảo rằng dữ liệu được scale và reshape nếu là mô hình CNN
-            test_data_scaled = scaler.transform(test_data.drop(columns=['churn']))
-            test_data_reshaped = test_data_scaled.reshape(test_data_scaled.shape[0], test_data_scaled.shape[1], 1)
-            test_predictions = predict_churn(test_data_reshaped, model_name)
-
+    
+        # Load dự đoán từ các mô hình đã lưu
+        if model_name == "Logistic Regression":
+            predictions = logistic_regression_predictions
+        elif model_name == "KNN":
+            predictions = knn_predictions
+        elif model_name == "Random Forest":
+            predictions = random_forest_predictions
+        elif model_name == "Decision Tree":
+            predictions = decision_tree_predictions
+        elif model_name == "XGBoost":
+            predictions = xgboost_predictions
+        elif model_name == "Neural Network":
+            predictions = neural_network_predictions
+        elif model_name == "CNN":
+            predictions = cnn_predictions
+        
         actual_labels = test_data['churn']
-        roc_auc = roc_auc_score(actual_labels, test_predictions)
+        roc_auc = roc_auc_score(actual_labels, predictions)
         st.write(f"ROC AUC Score for {model_name}: {roc_auc}")
-
+    
         # Vẽ ROC curve
-        fpr, tpr, _ = roc_curve(actual_labels, test_predictions)
+        fpr, tpr, _ = roc_curve(actual_labels, predictions)
         roc_auc = auc(fpr, tpr)
-
+    
         # Vẽ ROC curve
         fig, ax = plt.subplots(figsize=(5.8, 4.1))
         ax.plot(fpr, tpr, color='darkorange', lw=1, label='ROC curve (area = %0.2f)' % roc_auc)
@@ -194,5 +200,6 @@ def main():
         ax.legend(loc="lower right")
         st.pyplot(fig)
 
+
 if __name__ == "__main__":
-    main()
+        main()

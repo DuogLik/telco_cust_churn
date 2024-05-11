@@ -21,10 +21,6 @@ nn_model = load_model("neural_network_model.keras")
 cnn_model = load_model("cnn_model.keras")
 test_data = pd.read_csv("test.csv")
 
-    # Tính toán min và max của tập dữ liệu kiểm tra
-min_values = test_data.min()
-max_values = test_data.max()
-
 # Hàm để dự đoán churn bằng các mô hình
 def predict_churn(input_data, model_name):
     input_df = pd.DataFrame(input_data, columns=[

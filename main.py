@@ -6,7 +6,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.metrics import roc_auc_score, roc_curve, auc
 from keras.models import load_model
 import matplotlib.pyplot as plt
-from sklearn.preprocessing import LabelEncoder, OrdinalEncoder, OneHotEncoder, MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler
 
 # Load các mô hình và dữ liệu test
 logistic_regression_model = pickle.load(
@@ -20,12 +20,13 @@ xgboost_model = pickle.load(open("xgboost_model.pkl", "rb"))
 nn_model = load_model("neural_network_model.keras")
 cnn_model = load_model("cnn_model.keras")
 test_data = pd.read_csv("test.csv")
-full_data = pd.read_csv("telco_churn_data_cleaned_encoded.csv")
 
+    # Tính toán min và max của tập dữ liệu kiểm tra
+min_values = test_data.min()
+max_values = test_data.max()
 
 # Hàm để dự đoán churn bằng các mô hình
 def predict_churn(input_data, model_name):
-    # Chỉ chọn các cột quan trọng từ dữ liệu đầu vào
     input_df = pd.DataFrame(input_data, columns=[
         'tenure', 'monthly_charges', 'total_charges', 'senior_citizen',
         'phone_service_No', 'phone_service_Yes', 'contract_Month-to-month', 'contract_One year', 'contract_Two year',
@@ -42,35 +43,31 @@ def predict_churn(input_data, model_name):
         'tech_support_No', 'tech_support_No internet service', 'tech_support_Yes',
         'streaming_tv_No', 'streaming_tv_No internet service', 'streaming_tv_Yes',
         'streaming_movies_No', 'streaming_movies_No internet service', 'streaming_movies_Yes'])
-
-    # Xử lý giá trị NaN bằng cách điền vào giá trị trung bình của cột
-    imputer = SimpleImputer(strategy='mean')
-    input_df[['tenure', 'monthly_charges', 'total_charges']] = imputer.fit_transform(
-        input_df[['tenure', 'monthly_charges', 'total_charges']])
-
-    # Scaling all variables to a range of 0 to 1
+    
+    # Scaling all variables to a range of 0 to 1 based on test data min and max
     scaler = MinMaxScaler()
-    input_df = pd.DataFrame(scaler.fit_transform(input_df))
+    scaler.fit(test_data)
+    input_data_scaled = scaler.transform(input_data)
 
     # For CNN model, reshape input data to include the time dimension
     if model_name == "CNN":
-        input_df = input_df.values.reshape(input_df.shape[0], input_df.shape[1], 1)
+        input_data_scaled = input_data_scaled.reshape(input_data_scaled.shape[0], input_data_scaled.shape[1], 1)
 
     # Dự đoán churn với model tương ứng
     if model_name == "Logistic Regression":
-        prediction = logistic_regression_model.predict_proba(input_df)[:, 1]
+        prediction = logistic_regression_model.predict_proba(input_data_scaled)[:, 1]
     elif model_name == "KNN":
-        prediction = knn_model.predict_proba(input_df)[:, 1]
+        prediction = knn_model.predict_proba(input_data_scaled)[:, 1]
     elif model_name == "Random Forest":
-        prediction = random_forest_model.predict_proba(input_df)[:, 1]
+        prediction = random_forest_model.predict_proba(input_data_scaled)[:, 1]
     elif model_name == "Decision Tree":
-        prediction = decision_tree_model.predict_proba(input_df)[:, 1]
+        prediction = decision_tree_model.predict_proba(input_data_scaled)[:, 1]
     elif model_name == "XGBoost":
-        prediction = xgboost_model.predict_proba(input_df)[:, 1]
+        prediction = xgboost_model.predict_proba(input_data_scaled)[:, 1]
     elif model_name == "Neural Network":
-        prediction = nn_model.predict(input_df)
+        prediction = nn_model.predict(input_data_scaled)
     elif model_name == "CNN":
-        prediction = cnn_model.predict(input_df)
+        prediction = cnn_model.predict(input_data_scaled)
 
     return prediction
 
@@ -90,15 +87,15 @@ def main():
 
     if task == "Predict":
         # Nhập dữ liệu từ người dùng
-        tenure = st.sidebar.number_input("Tenure", value=full_data['tenure'].mean())
+        tenure = st.sidebar.number_input("Tenure", value=test_data['tenure'].mean())
         PhoneService = st.sidebar.selectbox("Phone Service", [" ", "Yes", "No", "No Phone Service"])
         Contract = st.sidebar.selectbox("Contract", [" ", "Month-to-month", "One year", "Two year"])
         PaperlessBilling = st.sidebar.selectbox('Paperless Billing', ['', 'Yes', 'No'])
         PaymentMethod = st.sidebar.selectbox('Payment Method',
                                              ['', 'Electronic check', 'Mailed check', 'Bank transfer (automatic)',
                                               'Credit card (automatic)'])
-        MonthlyCharges = st.sidebar.number_input('Monthly Charges', value=full_data['monthly_charges'].mean())
-        TotalCharges = st.sidebar.number_input('Total Charges', value=full_data['total_charges'].mean())
+        MonthlyCharges = st.sidebar.number_input('Monthly Charges', value=test_data['monthly_charges'].mean())
+        TotalCharges = st.sidebar.number_input('Total Charges', value=test_data['total_charges'].mean())
         gender = st.sidebar.selectbox("Gender", ['', "Male", "Female"])
         SeniorCitizen = st.sidebar.selectbox('Senior Citizen', ['', 'Yes', 'No'])
         Partner = st.sidebar.selectbox('Partner', ['', 'Yes', 'No'])

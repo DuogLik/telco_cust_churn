@@ -19,13 +19,13 @@ if not os.path.exists("prediction_history"):
 # Load các mô hình và dữ liệu test
 @st.cache_resource
 def load_models():
-    logistic_regression_model = pickle.load(open("C:/Users/assus/PyCharmProject/Customers_Churn/MODELS/logistic_regression_model.pkl", "rb"))
-    knn_model = pickle.load(open("C:/Users/assus/PyCharmProject/Customers_Churn/MODELS/knn_model.pkl", "rb"))
-    random_forest_model = pickle.load(open("C:/Users/assus/PyCharmProject/Customers_Churn/MODELS/random_forest_model.pkl", "rb"))
-    decision_tree_model = pickle.load(open("C:/Users/assus/PyCharmProject/Customers_Churn/MODELS/decision_tree_model.pkl", "rb"))
-    xgboost_model = pickle.load(open("C:/Users/assus/PyCharmProject/Customers_Churn/MODELS/xgboost_model.pkl", "rb"))
-    nn_model = load_model("C:/Users/assus/PyCharmProject/Customers_Churn/MODELS/neural_network_model.keras")
-    cnn_model = load_model("C:/Users/assus/PyCharmProject/Customers_Churn/MODELS/cnn_model.keras")
+    logistic_regression_model = pickle.load(open("logistic_regression_model.pkl", "rb"))
+    knn_model = pickle.load(open("knn_model.pkl", "rb"))
+    random_forest_model = pickle.load(open("random_forest_model.pkl", "rb"))
+    decision_tree_model = pickle.load(open("decision_tree_model.pkl", "rb"))
+    xgboost_model = pickle.load(open("xgboost_model.pkl", "rb"))
+    nn_model = load_model("neural_network_model.keras")
+    cnn_model = load_model("cnn_model.keras")
     return {
         "Logistic Regression": logistic_regression_model,
         "KNN": knn_model,
@@ -38,7 +38,7 @@ def load_models():
 
 @st.cache_resource
 def load_data():
-    test_data = pd.read_csv("C:/Users/assus/PyCharmProject/Customers_Churn/data/test.csv")
+    test_data = pd.read_csv("test.csv")
     return test_data
 
 models = load_models()
@@ -82,7 +82,7 @@ def main():
              ' To check the accuracy of the classifier, click on the Performance on Test Dataset button in the sidebar.'
              ' To predict, select the model you want to use from the dropdown box in the sidebar after choosing the user input data.')
 
-    st.image("C:/Users/assus\PyCharmProject\Customers_Churn/maxresdefault.jpg", width=1100)
+    st.image("maxresdefault.jpg", width=1100)
     st.markdown("""
     <style>
     .sidebar .sidebar-content {

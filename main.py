@@ -82,7 +82,7 @@ def main():
              ' To check the accuracy of the classifier, click on the Performance on Test Dataset button in the sidebar.'
              ' To predict, select the model you want to use from the dropdown box in the sidebar after choosing the user input data.')
 
-    st.image("maxresdefault.jpg", width=1000)
+    st.image("maxresdefault.jpg", width=900)
     st.markdown("""
     <style>
     .sidebar .sidebar-content {
@@ -173,12 +173,8 @@ def main():
             "streaming_movies_Yes": [1 if StreamingMovies == "Yes" else 0]
         })
 
-        if (PhoneService == " " or Contract == " " or PaperlessBilling == '' or PaymentMethod == '' or gender == '' or
-            SeniorCitizen == '' or Partner == '' or Dependents == '' or MultipleLines == '' or InternetService == '' or
-            OnlineSecurity == '' or OnlineBackup == '' or DeviceProtection == '' or TechSupport == '' or StreamingTV == '' or StreamingMovies == ''):
-            st.warning("Please fill in all input fields to make a prediction.")
-        else:
-            model_name = st.sidebar.selectbox("Select Model", ["Logistic Regression", "KNN", "Random Forest", "Decision Tree", "XGBoost", "Neural Network", "CNN"])
+        
+        model_name = st.sidebar.selectbox("Select Model", ["Logistic Regression", "KNN", "Random Forest", "Decision Tree", "XGBoost", "Neural Network", "CNN"])
 
             if st.sidebar.button("Predict"):
                 prediction = predict_churn(input_data, model_name)

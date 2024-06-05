@@ -176,20 +176,20 @@ def main():
         
         model_name = st.sidebar.selectbox("Select Model", ["Logistic Regression", "KNN", "Random Forest", "Decision Tree", "XGBoost", "Neural Network", "CNN"])
 
-            if st.sidebar.button("Predict"):
-                prediction = predict_churn(input_data, model_name)
-                prediction = prediction[0] * 100  # Convert to percentage
-                st.subheader('Prediction Result')
-                st.write("Churn Probability:", round(float(prediction), 2), "%")
-                if prediction < 50:
-                    st.success('NOT Churn')
-                else:
-                    st.error('CHURN')
+        if st.sidebar.button("Predict"):
+            prediction = predict_churn(input_data, model_name)
+            prediction = prediction[0] * 100  # Convert to percentage
+            st.subheader('Prediction Result')
+            st.write("Churn Probability:", round(float(prediction), 2), "%")
+            if prediction < 50:
+                st.success('NOT Churn')
+            else:
+                st.error('CHURN')
 
-                # Lưu kết quả dự đoán
-                prediction_data = input_data.copy()
-                prediction_data["churn_probability"] = round(float(prediction), 2)
-                save_prediction(prediction_data)
+            # Lưu kết quả dự đoán
+            prediction_data = input_data.copy()
+            prediction_data["churn_probability"] = round(float(prediction), 2)
+            save_prediction(prediction_data)
 
     elif task == "Performance on Test Dataset":
         st.subheader("Performance on The Test Dataset (ROC AUC Score):")

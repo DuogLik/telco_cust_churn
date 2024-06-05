@@ -82,7 +82,7 @@ def main():
              ' To check the accuracy of the classifier, click on the Performance on Test Dataset button in the sidebar.'
              ' To predict, select the model you want to use from the dropdown box in the sidebar after choosing the user input data.')
 
-    st.image("maxresdefault.jpg", width=1100)
+    st.image("maxresdefault.jpg", width=1000)
     st.markdown("""
     <style>
     .sidebar .sidebar-content {

@@ -16,6 +16,7 @@ st.set_page_config(page_title='Customer Churn Prediction', page_icon=':bar_chart
 if not os.path.exists("prediction_history"):
     os.makedirs("prediction_history")
 
+
 # Load các mô hình và dữ liệu test
 @st.cache_resource
 def load_models():
@@ -36,13 +37,16 @@ def load_models():
         "CNN": cnn_model
     }
 
+
 @st.cache_resource
 def load_data():
     test_data = pd.read_csv("test.csv")
     return test_data
 
+
 models = load_models()
 test_data = load_data()
+
 
 # Hàm để dự đoán churn bằng các mô hình
 def predict_churn(input_data, model_name):
@@ -58,6 +62,7 @@ def predict_churn(input_data, model_name):
         prediction = models[model_name].predict(input_data_scaled)
     return prediction
 
+
 def save_prediction(prediction_data):
     history_file = "prediction_history/history.csv"
     if os.path.exists(history_file):
@@ -67,12 +72,14 @@ def save_prediction(prediction_data):
         history_df = prediction_data
     history_df.to_csv(history_file, index=False)
 
+
 def load_prediction_history():
     history_file = "prediction_history/history.csv"
     if os.path.exists(history_file):
         return pd.read_csv(history_file)
     else:
         return pd.DataFrame()
+
 
 def main():
     st.title('Telecom Customer Churn Prediction WEBAPP')
@@ -107,9 +114,19 @@ def main():
             PhoneService = st.selectbox("Phone Service", ["Yes", "No", "No Phone Service"])
             Contract = st.selectbox("Contract", ["Month-to-month", "One year", "Two year"])
             PaperlessBilling = st.selectbox('Paperless Billing', ['Yes', 'No'])
-            PaymentMethod = st.selectbox('Payment Method', ['Electronic check', 'Mailed check', 'Bank transfer (automatic)', 'Credit card (automatic)'])
+            PaymentMethod = st.selectbox('Payment Method',
+                                         ['Electronic check', 'Mailed check', 'Bank transfer (automatic)',
+                                          'Credit card (automatic)'])
             MonthlyCharges = st.number_input('Monthly Charges', value=float(test_data['monthly_charges'].mean()))
-            TotalCharges = st.number_input('Total Charges', value=float(test_data['total_charges'].mean()))
+            use_calculated_total_charges = st.checkbox('Use calculated Total Charges')
+
+            if use_calculated_total_charges:
+                extra_cost = 100
+                calculated_TotalCharges = MonthlyCharges * tenure + extra_cost
+                TotalCharges = st.number_input('Total Charges', value=float(calculated_TotalCharges))
+            else:
+                TotalCharges = st.number_input('Total Charges', value=float(test_data['total_charges'].mean()))
+
             StreamingTV = st.selectbox('Streaming TV', ['Yes', 'No', 'No internet service'])
             StreamingMovies = st.selectbox('Streaming Movies', ['Yes', 'No', 'No internet service'])
 
@@ -173,7 +190,6 @@ def main():
             "streaming_movies_Yes": [1 if StreamingMovies == "Yes" else 0]
         })
 
-        
         model_name = st.sidebar.selectbox("Select Model", ["Logistic Regression", "KNN", "Random Forest", "Decision Tree", "XGBoost", "Neural Network", "CNN"])
 
         if st.sidebar.button("Predict"):
@@ -230,4 +246,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

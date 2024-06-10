@@ -119,7 +119,7 @@ def main():
                                           'Credit card (automatic)'])
             MonthlyCharges = st.number_input('Monthly Charges', value=float(test_data['monthly_charges'].mean()))
             use_calculated_total_charges = st.checkbox('Use calculated Total Charges')
-            st.text("Total Charges = Monthly Charges * Tenure + Extra Cost ( ~100 )")
+            st.write("Total Charges = Monthly Charges * Tenure + Extra Cost ( ~100 )")
 
             if use_calculated_total_charges:
                 extra_cost = 100

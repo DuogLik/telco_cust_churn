@@ -89,18 +89,7 @@ def main():
              ' To check the accuracy of the classifier, click on the Performance on Test Dataset button in the sidebar.'
              ' To predict, select the model you want to use from the dropdown box in the sidebar after choosing the user input data.')
 
-    st.image("maxresdefault.jpg", width=800)
-    st.markdown("""
-    <style>
-    .sidebar .sidebar-content {
-        background-color: #f0f2f6;
-    }
-    .main .block-container {
-        max-width: 80%;
-        margin: auto;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+    
 
     st.sidebar.title('MENU')
     task = st.sidebar.radio("Select Task", ["Predict", "Performance on Test Dataset", "Prediction History"])

@@ -3,7 +3,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.metrics import roc_auc_score, roc_curve, auc
+from sklearn.metrics import roc_auc_score, roc_curve, auc, f1_score
 from keras.models import load_model
 import matplotlib.pyplot as plt
 import os
@@ -272,24 +272,27 @@ def main():
                 )
 
     elif task == "Performance on Test Dataset":
-        st.subheader("Performance on The Test Dataset (ROC AUC Score):")
+        st.subheader("Performance on The Test Dataset (ROC AUC Score and F1-score):")
         model_name = st.selectbox("Select Model",
                                   ["Logistic Regression", "KNN", "Random Forest", "Decision Tree", "XGBoost",
                                    "Neural Network", "CNN"])
-
+    
         input_data_scaled = one_hot_encode_and_scale(test_data.drop(columns=['churn']))
-
+    
         if model_name == "CNN":
             input_data_scaled = input_data_scaled.reshape(input_data_scaled.shape[0], input_data_scaled.shape[1], 1)
         predictions = predict_churn(input_data_scaled, model_name)
-
+    
         actual_labels = test_data['churn']
         roc_auc = roc_auc_score(actual_labels, predictions)
         st.write(f"ROC AUC Score for {model_name}: {roc_auc}")
-
+    
         fpr, tpr, _ = roc_curve(actual_labels, predictions)
         roc_auc = auc(fpr, tpr)
-
+    
+        f1 = f1_score(actual_labels, predictions.round())
+        st.write(f"F1-score for {model_name}: {f1}")
+    
         fig, ax = plt.subplots(figsize=(5.8, 4.1))
         ax.plot(fpr, tpr, color='darkorange', lw=1, label='ROC curve (area = %0.2f)' % roc_auc)
         ax.plot([0, 1], [0, 1], color='navy', lw=1, linestyle='--')
@@ -300,6 +303,7 @@ def main():
         ax.set_title('Receiver Operating Characteristic')
         ax.legend(loc="lower right")
         st.pyplot(fig)
+
 
     elif task == "Prediction History":
         st.subheader("Prediction History")

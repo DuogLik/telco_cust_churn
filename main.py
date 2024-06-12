@@ -3,13 +3,19 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.metrics import roc_auc_score, roc_curve, auc, f1_score
+from sklearn.metrics import roc_auc_score, roc_curve, auc
 from keras.models import load_model
 import matplotlib.pyplot as plt
 import os
+from sklearn.metrics import f1_score
+from PIL import Image
 
 # Set page configuration
 st.set_page_config(page_title='Customer Churn Prediction', page_icon=':bar_chart:', layout='wide')
+
+# Initialize session state for login
+if 'logged_in' not in st.session_state:
+    st.session_state.logged_in = False
 
 # Create a directory for saving prediction history
 if not os.path.exists("prediction_history"):
@@ -37,7 +43,7 @@ def load_models():
 
 @st.cache_resource
 def load_data():
-    test_data = pd.read_csv("test.csv")
+    test_data = pd.read_csv("data/test.csv")
     return test_data
 
 models = load_models()
@@ -147,168 +153,200 @@ def encode_manual_input(input_data):
     return input_data
 
 def main():
-    st.title('Telecom Customer Churn Prediction WEBAPP')
-    st.write('This webapp will help you predict customer churn based on a Telecom Customer Churn Prediction.'
-             ' You will predict the churn rate of customers in a telecom company using a stored model '
-             ' based on Logistic Regression, KNN, Random Forest, Decision Tree, XGBoost, Neural Network, CNN.'
-             ' To check the accuracy of the classifier, click on the Performance on Test Dataset button in the sidebar.'
-             ' To predict, select the model you want to use from the dropdown box in the sidebar after choosing the user input data.')
+    if not st.session_state.logged_in:
+        # Create two columns
+        col1, col2 = st.columns([3, 2])  # Adjust the ratio as needed
 
-    st.sidebar.title('MENU')
-    task = st.sidebar.radio("Select Task",
-                            ["Predict", "File Upload Predict", "Performance on Test Dataset", "Prediction History"])
-
-    if task == "Predict":
-        st.subheader('Input Customer Details')
-        col1, col2 = st.columns(2)
-
+        # Column for login form
         with col1:
-            tenure = st.number_input("Tenure", value=int(test_data['tenure'].mean()))
-            PhoneService = st.selectbox("Phone Service", ["Yes", "No", "No Phone Service"])
-            Contract = st.selectbox("Contract", ["Month-to-month", "One year", "Two year"])
-            PaperlessBilling = st.selectbox('Paperless Billing', ['Yes', 'No'])
-            PaymentMethod = st.selectbox('Payment Method',
-                                         ['Electronic check', 'Mailed check', 'Bank transfer (automatic)',
-                                          'Credit card (automatic)'])
-            MonthlyCharges = st.number_input('Monthly Charges', value=float(test_data['monthly_charges'].mean()))
-            use_calculated_total_charges = st.checkbox('Use calculated Total Charges')
-            st.write("Total Charges = Monthly Charges * Tenure + Extra Cost (~100)")
+            st.markdown("<h2 style='color:darkblue;'>LOG IN</h2>", unsafe_allow_html=True)
 
-            if use_calculated_total_charges:
-                extra_cost = 100
-                calculated_TotalCharges = MonthlyCharges * tenure + extra_cost
-                TotalCharges = st.number_input('Total Charges', value=float(calculated_TotalCharges))
-            else:
-                TotalCharges = st.number_input('Total Charges', value=float(test_data['total_charges'].mean()))
+            username = st.text_input("Username:")
+            password = st.text_input("Password:", type="password")
 
-            StreamingTV = st.selectbox('Streaming TV', ['Yes', 'No', 'No internet service'])
-            StreamingMovies = st.selectbox('Streaming Movies', ['Yes', 'No', 'No internet service'])
+            # Create the "Remember" checkbox and "Forgot Password?" link
+            remember_col, forgot_password_col = st.columns([1, 2])
+            with remember_col:
+                remember = st.checkbox("Remember")
+            with forgot_password_col:
+                st.markdown("<a href='#'>Forgot Password?</a>", unsafe_allow_html=True)
 
+            st.warning("username == Linh and password == Linh")
+
+            # Log in button
+            if st.button("Log in", key="login_button", help="Login with the provided credentials"):
+                if username == "Linh" and password == "Linh":
+                    st.session_state.logged_in = True
+                    st.success("Login successful!")
+                    st.experimental_rerun()
+                else:
+                    st.error("Invalid username or password.")
+
+        # Column for image display
         with col2:
-            gender = st.selectbox("Gender", ["Male", "Female"])
-            SeniorCitizen = st.selectbox('Senior Citizen', ['Yes', 'No'])
-            Partner = st.selectbox('Partner', ['Yes', 'No'])
-            Dependents = st.selectbox('Dependents', ['Yes', 'No'])
-            MultipleLines = st.selectbox('Multiple Lines', ['Yes', 'No', 'No phone service'])
-            InternetService = st.selectbox('Internet Service', ['DSL', 'Fiber optic', 'No'])
-            OnlineSecurity = st.selectbox('Online Security', ['Yes', 'No', 'No internet service'])
-            OnlineBackup = st.selectbox('Online Backup', ['Yes', 'No', 'No internet service'])
-            DeviceProtection = st.selectbox('Device Protection', ['Yes', 'No', 'No internet service'])
-            TechSupport = st.selectbox('Tech Support', ['Yes', 'No', 'No internet service'])
+            image = Image.open("maxresdefault.jpg")
+            st.image(image, width=600)
 
-        input_data = pd.DataFrame({
-            "tenure": [tenure],
-            "monthly_charges": [MonthlyCharges],
-            "total_charges": [TotalCharges],
-            "gender": [gender],
-            "SeniorCitizen": [SeniorCitizen],
-            "Partner": [Partner],
-            "Dependents": [Dependents],
-            "PhoneService": [PhoneService],
-            "MultipleLines": [MultipleLines],
-            "InternetService": [InternetService],
-            "OnlineSecurity": [OnlineSecurity],
-            "OnlineBackup": [OnlineBackup],
-            "DeviceProtection": [DeviceProtection],
-            "TechSupport": [TechSupport],
-            "StreamingTV": [StreamingTV],
-            "StreamingMovies": [StreamingMovies],
-            "Contract": [Contract],
-            "PaperlessBilling": [PaperlessBilling],
-            "PaymentMethod": [PaymentMethod]
-        })
 
-        input_data_encoded = encode_manual_input(input_data)
+    else:
+        st.title('Telecom Customer Churn Prediction WEBAPP')
+        st.write('This webapp will help you predict customer churn based on a Telecom Customer Churn Prediction.'
+                 ' You will predict the churn rate of customers in a telecom company using a stored model '
+                 ' based on Logistic Regression, KNN, Random Forest, Decision Tree, XGBoost, Neural Network, CNN.'
+                 ' To check the accuracy of the classifier, click on the Performance on Test Dataset button in the sidebar.'
+                 ' To predict, select the model you want to use from the dropdown box in the sidebar after choosing the user input data.')
 
-        model_name = st.sidebar.selectbox("Select Model",
-                                          ["Logistic Regression", "KNN", "Random Forest", "Decision Tree", "XGBoost",
-                                           "Neural Network", "CNN"])
+        st.sidebar.title('MENU')
+        task = st.sidebar.radio("Select Task",
+                                ["Predict", "File Upload Predict", "Performance on Test Dataset", "Prediction History"])
 
-        if st.sidebar.button("Predict"):
-            input_data_scaled = one_hot_encode_and_scale(input_data_encoded)
-            prediction = predict_churn(input_data_scaled, model_name)
-            prediction = prediction[0] * 100  # Convert to percentage
-            st.subheader('Prediction Result')
-            st.write("Churn Probability:", round(float(prediction), 2), "%")
-            if prediction < 50:
-                st.success('NOT Churn')
-            else:
-                st.error('CHURN')
+        if task == "Predict":
+            st.subheader('Input Customer Details')
+            col1, col2 = st.columns(2)
 
-            # Save prediction result
-            prediction_data = input_data.copy()
-            prediction_data["churn_probability"] = round(float(prediction), 2)
-            save_prediction(prediction_data)
+            with col1:
+                tenure = st.number_input("Tenure", value=int(test_data['tenure'].mean()))
+                PhoneService = st.selectbox("Phone Service", ["Yes", "No", "No Phone Service"])
+                Contract = st.selectbox("Contract", ["Month-to-month", "One year", "Two year"])
+                PaperlessBilling = st.selectbox('Paperless Billing', ['Yes', 'No'])
+                PaymentMethod = st.selectbox('Payment Method',
+                                             ['Electronic check', 'Mailed check', 'Bank transfer (automatic)',
+                                              'Credit card (automatic)'])
+                MonthlyCharges = st.number_input('Monthly Charges', value=float(test_data['monthly_charges'].mean()))
+                use_calculated_total_charges = st.checkbox('Use calculated Total Charges')
+                st.write("Total Charges = Monthly Charges * Tenure + Extra Cost (~100)")
 
-    elif task == "File Upload Predict":
-        st.subheader('Upload Customer Data')
-        uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
-        if uploaded_file:
-            input_data = pd.read_csv(uploaded_file)
+                if use_calculated_total_charges:
+                    extra_cost = 100
+                    calculated_TotalCharges = MonthlyCharges * tenure + extra_cost
+                    TotalCharges = st.number_input('Total Charges', value=float(calculated_TotalCharges))
+                else:
+                    TotalCharges = st.number_input('Total Charges', value=float(test_data['total_charges'].mean()))
+
+                StreamingTV = st.selectbox('Streaming TV', ['Yes', 'No', 'No internet service'])
+                StreamingMovies = st.selectbox('Streaming Movies', ['Yes', 'No', 'No internet service'])
+
+            with col2:
+                gender = st.selectbox("Gender", ["Male", "Female"])
+                SeniorCitizen = st.selectbox('Senior Citizen', ['Yes', 'No'])
+                Partner = st.selectbox('Partner', ['Yes', 'No'])
+                Dependents = st.selectbox('Dependents', ['Yes', 'No'])
+                MultipleLines = st.selectbox('Multiple Lines', ['Yes', 'No', 'No phone service'])
+                InternetService = st.selectbox('Internet Service', ['DSL', 'Fiber optic', 'No'])
+                OnlineSecurity = st.selectbox('Online Security', ['Yes', 'No', 'No internet service'])
+                OnlineBackup = st.selectbox('Online Backup', ['Yes', 'No', 'No internet service'])
+                DeviceProtection = st.selectbox('Device Protection', ['Yes', 'No', 'No internet service'])
+                TechSupport = st.selectbox('Tech Support', ['Yes', 'No', 'No internet service'])
+
+            input_data = pd.DataFrame({
+                "tenure": [tenure],
+                "monthly_charges": [MonthlyCharges],
+                "total_charges": [TotalCharges],
+                "gender": [gender],
+                "SeniorCitizen": [SeniorCitizen],
+                "Partner": [Partner],
+                "Dependents": [Dependents],
+                "PhoneService": [PhoneService],
+                "MultipleLines": [MultipleLines],
+                "InternetService": [InternetService],
+                "OnlineSecurity": [OnlineSecurity],
+                "OnlineBackup": [OnlineBackup],
+                "DeviceProtection": [DeviceProtection],
+                "TechSupport": [TechSupport],
+                "StreamingTV": [StreamingTV],
+                "StreamingMovies": [StreamingMovies],
+                "Contract": [Contract],
+                "PaperlessBilling": [PaperlessBilling],
+                "PaymentMethod": [PaymentMethod]
+            })
 
             input_data_encoded = encode_manual_input(input_data)
 
-            input_data_scaled = one_hot_encode_and_scale(input_data_encoded)
-
             model_name = st.sidebar.selectbox("Select Model",
-                                              ["Logistic Regression", "KNN", "Random Forest", "Decision Tree",
-                                               "XGBoost", "Neural Network", "CNN"])
+                                              ["Logistic Regression", "KNN", "Random Forest", "Decision Tree", "XGBoost",
+                                               "Neural Network", "CNN"])
 
             if st.sidebar.button("Predict"):
-                if model_name == "CNN":
-                    input_data_scaled = input_data_scaled.reshape(input_data_scaled.shape[0],
-                                                                  input_data_scaled.shape[1], 1)
-                predictions = predict_churn(input_data_scaled, model_name)
-                input_data['churn_probability'] = predictions * 100  # Convert to percentage
-                st.write(input_data)
+                input_data_scaled = one_hot_encode_and_scale(input_data_encoded)
+                prediction = predict_churn(input_data_scaled, model_name)
+                prediction = prediction[0] * 100  # Convert to percentage
+                st.subheader('Prediction Result')
+                st.write("Churn Probability:", round(float(prediction), 2), "%")
+                if prediction < 50:
+                    st.success('NOT Churn')
+                else:
+                    st.error('CHURN')
 
-                # Download prediction results
-                csv = input_data.to_csv(index=False).encode('utf-8')
-                st.download_button(
-                    label="Download Predictions",
-                    data=csv,
-                    file_name='predictions.csv',
-                    mime='text/csv',
-                )
+                # Save prediction result
+                prediction_data = input_data.copy()
+                prediction_data["churn_probability"] = round(float(prediction), 2)
+                save_prediction(prediction_data)
 
-    elif task == "Performance on Test Dataset":
-        st.subheader("Performance on The Test Dataset (ROC AUC Score and F1-score):")
-        model_name = st.selectbox("Select Model",
-                                  ["Logistic Regression", "KNN", "Random Forest", "Decision Tree", "XGBoost",
-                                   "Neural Network", "CNN"])
-    
-        input_data_scaled = one_hot_encode_and_scale(test_data.drop(columns=['churn']))
-    
-        if model_name == "CNN":
-            input_data_scaled = input_data_scaled.reshape(input_data_scaled.shape[0], input_data_scaled.shape[1], 1)
-        predictions = predict_churn(input_data_scaled, model_name)
-    
-        actual_labels = test_data['churn']
-        roc_auc = roc_auc_score(actual_labels, predictions)
-        st.write(f"ROC AUC Score for {model_name}: {roc_auc}")
-    
-        fpr, tpr, _ = roc_curve(actual_labels, predictions)
-        roc_auc = auc(fpr, tpr)
-    
-        f1 = f1_score(actual_labels, predictions.round())
-        st.write(f"F1-score for {model_name}: {f1}")
-    
-        fig, ax = plt.subplots(figsize=(5.8, 4.1))
-        ax.plot(fpr, tpr, color='darkorange', lw=1, label='ROC curve (area = %0.2f)' % roc_auc)
-        ax.plot([0, 1], [0, 1], color='navy', lw=1, linestyle='--')
-        ax.set_xlim([0.0, 1.0])
-        ax.set_ylim([0.0, 1.05])
-        ax.set_xlabel('False Positive Rate')
-        ax.set_ylabel('True Positive Rate')
-        ax.set_title('Receiver Operating Characteristic')
-        ax.legend(loc="lower right")
-        st.pyplot(fig)
+        elif task == "File Upload Predict":
+            st.subheader('Upload Customer Data')
+            uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
+            if uploaded_file:
+                input_data = pd.read_csv(uploaded_file)
+                input_data_encoded = encode_manual_input(input_data)
+                input_data_scaled = one_hot_encode_and_scale(input_data_encoded)
+
+                model_name = st.sidebar.selectbox("Select Model",
+                                                  ["Logistic Regression", "KNN", "Random Forest", "Decision Tree",
+                                                   "XGBoost", "Neural Network", "CNN"])
+
+                if st.sidebar.button("Predict"):
+                    if model_name == "CNN":
+                        input_data_scaled = input_data_scaled.reshape(input_data_scaled.shape[0],
+                                                                      input_data_scaled.shape[1], 1)
+                    predictions = predict_churn(input_data_scaled, model_name)
+                    input_data['churn_probability'] = predictions * 100  # Convert to percentage
+                    st.write(input_data)
+
+                    # Download prediction results
+                    csv = input_data.to_csv(index=False).encode('utf-8')
+                    st.download_button(
+                        label="Download Predictions",
+                        data=csv,
+                        file_name='predictions.csv',
+                        mime='text/csv',
+                    )
 
 
-    elif task == "Prediction History":
-        st.subheader("Prediction History")
-        prediction_history = load_prediction_history()
-        st.dataframe(prediction_history)
+        elif task == "Performance on Test Dataset":
+            st.subheader("Performance on The Test Dataset (ROC AUC Score and F1-score):")
+
+            model_name = st.selectbox("Select Model",
+                                      ["Logistic Regression", "KNN", "Random Forest", "Decision Tree", "XGBoost",
+                                       "Neural Network", "CNN"])
+
+            input_data_scaled = one_hot_encode_and_scale(test_data.drop(columns=['churn']))
+
+            if model_name == "CNN":
+                input_data_scaled = input_data_scaled.reshape(input_data_scaled.shape[0], input_data_scaled.shape[1], 1)
+            predictions = predict_churn(input_data_scaled, model_name)
+            actual_labels = test_data['churn']
+            roc_auc = roc_auc_score(actual_labels, predictions)
+            st.write(f"ROC AUC Score for {model_name}: {roc_auc}")
+            fpr, tpr, _ = roc_curve(actual_labels, predictions)
+            roc_auc = auc(fpr, tpr)
+            f1 = f1_score(actual_labels, predictions.round())
+            st.write(f"F1-score for {model_name}: {f1}")
+            fig, ax = plt.subplots(figsize=(5.8, 4.1))
+            ax.plot(fpr, tpr, color='darkorange', lw=1, label='ROC curve (area = %0.2f)' % roc_auc)
+            ax.plot([0, 1], [0, 1], color='navy', lw=1, linestyle='--')
+            ax.set_xlim([0.0, 1.0])
+            ax.set_ylim([0.0, 1.05])
+            ax.set_xlabel('False Positive Rate')
+            ax.set_ylabel('True Positive Rate')
+            ax.set_title('Receiver Operating Characteristic')
+            ax.legend(loc="lower right")
+            st.pyplot(fig)
+
+
+        elif task == "Prediction History":
+            st.subheader("Prediction History")
+            prediction_history = load_prediction_history()
+            st.dataframe(prediction_history)
 
 if __name__ == "__main__":
     main()

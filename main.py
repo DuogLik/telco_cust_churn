@@ -10,6 +10,7 @@ import os
 from sklearn.metrics import f1_score
 from PIL import Image
 
+
 # Set page configuration
 st.set_page_config(page_title='Customer Churn Prediction', page_icon=':bar_chart:', layout='wide')
 
@@ -17,9 +18,11 @@ st.set_page_config(page_title='Customer Churn Prediction', page_icon=':bar_chart
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
 
+
 # Create a directory for saving prediction history
 if not os.path.exists("prediction_history"):
     os.makedirs("prediction_history")
+
 
 # Load models and test data
 @st.cache_resource
@@ -43,7 +46,7 @@ def load_models():
 
 @st.cache_resource
 def load_data():
-    test_data = pd.read_csv("data/test.csv")
+    test_data = pd.read_csv("test.csv")
     return test_data
 
 models = load_models()
@@ -323,6 +326,7 @@ def main():
 
             if model_name == "CNN":
                 input_data_scaled = input_data_scaled.reshape(input_data_scaled.shape[0], input_data_scaled.shape[1], 1)
+
             predictions = predict_churn(input_data_scaled, model_name)
             actual_labels = test_data['churn']
             roc_auc = roc_auc_score(actual_labels, predictions)

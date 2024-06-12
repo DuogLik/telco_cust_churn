@@ -63,7 +63,7 @@ def save_prediction(prediction_data):
     history_df.to_csv(history_file, index=False)
 
 def load_prediction_history():
-    history_file = "prediction_history/history.csv"
+    history_file = "history.csv"
     if os.path.exists(history_file):
         return pd.read_csv(history_file)
     else:

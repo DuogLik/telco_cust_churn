@@ -188,7 +188,7 @@ def main():
         # Column for image display
         with col2:
             image = Image.open("maxresdefault.jpg")
-            st.image(image, width=500)
+            st.image(image, width=400)
 
 
     else:

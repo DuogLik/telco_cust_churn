@@ -158,7 +158,7 @@ def encode_manual_input(input_data):
 def main():
     if not st.session_state.logged_in:
         # Create two columns
-        col1, col2 = st.columns([3, 2])  # Adjust the ratio as needed
+        col1, col2 = st.columns([3, 3])  # Adjust the ratio as needed
 
         # Column for login form
         with col1:

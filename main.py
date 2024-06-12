@@ -6,18 +6,16 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import roc_auc_score, roc_curve, auc
 from keras.models import load_model
 import matplotlib.pyplot as plt
-from PIL import Image
 import os
 
-# Đặt cấu hình trang
+# Set page configuration
 st.set_page_config(page_title='Customer Churn Prediction', page_icon=':bar_chart:', layout='wide')
 
-# Tạo thư mục để lưu lịch sử dự đoán
+# Create a directory for saving prediction history
 if not os.path.exists("prediction_history"):
     os.makedirs("prediction_history")
 
-
-# Load các mô hình và dữ liệu test
+# Load models and test data
 @st.cache_resource
 def load_models():
     logistic_regression_model = pickle.load(open("logistic_regression_model.pkl", "rb"))
@@ -37,41 +35,32 @@ def load_models():
         "CNN": cnn_model
     }
 
-
 @st.cache_resource
 def load_data():
     test_data = pd.read_csv("test.csv")
     return test_data
 
-
 models = load_models()
 test_data = load_data()
 
-
-# Hàm để dự đoán churn bằng các mô hình
+# Function to predict churn using models
 def predict_churn(input_data, model_name):
-    scaler = MinMaxScaler()
-    scaler.fit(test_data.drop(columns=['churn']))
-    input_data_scaled = scaler.transform(input_data)
-
     if model_name in ["Logistic Regression", "KNN", "Random Forest", "Decision Tree", "XGBoost"]:
-        prediction = models[model_name].predict_proba(input_data_scaled)[:, 1]
+        prediction = models[model_name].predict_proba(input_data)[:, 1]
     elif model_name in ["Neural Network", "CNN"]:
         if model_name == "CNN":
-            input_data_scaled = input_data_scaled.reshape(input_data_scaled.shape[0], input_data_scaled.shape[1], 1)
-        prediction = models[model_name].predict(input_data_scaled)
+            input_data = input_data.reshape(input_data.shape[0], input_data.shape[1], 1)
+        prediction = models[model_name].predict(input_data)
     return prediction
 
-
 def save_prediction(prediction_data):
-    history_file = "prediction_history/history.csv"
+    history_file = "history.csv"
     if os.path.exists(history_file):
         history_df = pd.read_csv(history_file)
         history_df = pd.concat([history_df, prediction_data], ignore_index=True)
     else:
         history_df = prediction_data
     history_df.to_csv(history_file, index=False)
-
 
 def load_prediction_history():
     history_file = "prediction_history/history.csv"
@@ -80,6 +69,82 @@ def load_prediction_history():
     else:
         return pd.DataFrame()
 
+def one_hot_encode_and_scale(input_data):
+    # One-hot encode the categorical features
+    categorical_features = ['gender', 'SeniorCitizen', 'Partner', 'Dependents', 'PhoneService', 'MultipleLines',
+                            'InternetService', 'OnlineSecurity', 'OnlineBackup', 'DeviceProtection', 'TechSupport',
+                            'StreamingTV', 'StreamingMovies', 'Contract', 'PaperlessBilling', 'PaymentMethod']
+    input_data = pd.get_dummies(input_data, columns=[col for col in categorical_features if col in input_data.columns])
+
+    # Ensure all expected columns are present
+    expected_columns = test_data.drop(columns=['churn']).columns
+    for col in expected_columns:
+        if col not in input_data.columns:
+            input_data[col] = 0
+
+    # Ensure the input data has the same column order as the training data
+    input_data = input_data[expected_columns]
+
+    # Scale the data
+    scaler = MinMaxScaler()
+    scaler.fit(test_data.drop(columns=['churn']))
+    input_data_scaled = scaler.transform(input_data)
+
+    return input_data_scaled
+
+def encode_manual_input(input_data):
+    # Manually encode categorical features
+    input_data['senior_citizen'] = input_data['SeniorCitizen'].apply(lambda x: 1 if x == 'Yes' else 0)
+    input_data['phone_service_No'] = input_data['PhoneService'].apply(lambda x: 1 if x == 'No' else 0)
+    input_data['phone_service_Yes'] = input_data['PhoneService'].apply(lambda x: 1 if x == 'Yes' else 0)
+    input_data['phone_service_No Phone Service'] = input_data['PhoneService'].apply(lambda x: 1 if x == 'No Phone Service' else 0)
+    input_data['contract_Month-to-month'] = input_data['Contract'].apply(lambda x: 1 if x == 'Month-to-month' else 0)
+    input_data['contract_One year'] = input_data['Contract'].apply(lambda x: 1 if x == 'One year' else 0)
+    input_data['contract_Two year'] = input_data['Contract'].apply(lambda x: 1 if x == 'Two year' else 0)
+    input_data['paperless_billing_No'] = input_data['PaperlessBilling'].apply(lambda x: 1 if x == 'No' else 0)
+    input_data['paperless_billing_Yes'] = input_data['PaperlessBilling'].apply(lambda x: 1 if x == 'Yes' else 0)
+    input_data['gender_Female'] = input_data['gender'].apply(lambda x: 1 if x == 'Female' else 0)
+    input_data['gender_Male'] = input_data['gender'].apply(lambda x: 1 if x == 'Male' else 0)
+    input_data['partner_No'] = input_data['Partner'].apply(lambda x: 1 if x == 'No' else 0)
+    input_data['partner_Yes'] = input_data['Partner'].apply(lambda x: 1 if x == 'Yes' else 0)
+    input_data['dependents_No'] = input_data['Dependents'].apply(lambda x: 1 if x == 'No' else 0)
+    input_data['dependents_Yes'] = input_data['Dependents'].apply(lambda x: 1 if x == 'Yes' else 0)
+    input_data['multiple_lines_No'] = input_data['MultipleLines'].apply(lambda x: 1 if x == 'No' else 0)
+    input_data['multiple_lines_No phone service'] = input_data['MultipleLines'].apply(lambda x: 1 if x == 'No phone service' else 0)
+    input_data['multiple_lines_Yes'] = input_data['MultipleLines'].apply(lambda x: 1 if x == 'Yes' else 0)
+    input_data['internet_service_DSL'] = input_data['InternetService'].apply(lambda x: 1 if x == 'DSL' else 0)
+    input_data['internet_service_Fiber optic'] = input_data['InternetService'].apply(lambda x: 1 if x == 'Fiber optic' else 0)
+    input_data['internet_service_No'] = input_data['InternetService'].apply(lambda x: 1 if x == 'No' else 0)
+    input_data['online_security_No'] = input_data['OnlineSecurity'].apply(lambda x: 1 if x == 'No' else 0)
+    input_data['online_security_No internet service'] = input_data['OnlineSecurity'].apply(lambda x: 1 if x == 'No internet service' else 0)
+    input_data['online_security_Yes'] = input_data['OnlineSecurity'].apply(lambda x: 1 if x == 'Yes' else 0)
+    input_data['online_backup_No'] = input_data['OnlineBackup'].apply(lambda x: 1 if x == 'No' else 0)
+    input_data['online_backup_No internet service'] = input_data['OnlineBackup'].apply(lambda x: 1 if x == 'No internet service' else 0)
+    input_data['online_backup_Yes'] = input_data['OnlineBackup'].apply(lambda x: 1 if x == 'Yes' else 0)
+    input_data['device_protection_No'] = input_data['DeviceProtection'].apply(lambda x: 1 if x == 'No' else 0)
+    input_data['device_protection_No internet service'] = input_data['DeviceProtection'].apply(lambda x: 1 if x == 'No internet service' else 0)
+    input_data['device_protection_Yes'] = input_data['DeviceProtection'].apply(lambda x: 1 if x == 'Yes' else 0)
+    input_data['tech_support_No'] = input_data['TechSupport'].apply(lambda x: 1 if x == 'No' else 0)
+    input_data['tech_support_No internet service'] = input_data['TechSupport'].apply(lambda x: 1 if x == 'No internet service' else 0)
+    input_data['tech_support_Yes'] = input_data['TechSupport'].apply(lambda x: 1 if x == 'Yes' else 0)
+    input_data['streaming_tv_No'] = input_data['StreamingTV'].apply(lambda x: 1 if x == 'No' else 0)
+    input_data['streaming_tv_No internet service'] = input_data['StreamingTV'].apply(lambda x: 1 if x == 'No internet service' else 0)
+    input_data['streaming_tv_Yes'] = input_data['StreamingTV'].apply(lambda x: 1 if x == 'Yes' else 0)
+    input_data['streaming_movies_No'] = input_data['StreamingMovies'].apply(lambda x: 1 if x == 'No' else 0)
+    input_data['streaming_movies_No internet service'] = input_data['StreamingMovies'].apply(lambda x: 1 if x == 'No internet service' else 0)
+    input_data['streaming_movies_Yes'] = input_data['StreamingMovies'].apply(lambda x: 1 if x == 'Yes' else 0)
+    input_data['payment_method_Electronic check'] = input_data['PaymentMethod'].apply(lambda x: 1 if x == 'Electronic check' else 0)
+    input_data['payment_method_Mailed check'] = input_data['PaymentMethod'].apply(lambda x: 1 if x == 'Mailed check' else 0)
+    input_data['payment_method_Bank transfer (automatic)'] = input_data['PaymentMethod'].apply(lambda x: 1 if x == 'Bank transfer (automatic)' else 0)
+    input_data['payment_method_Credit card (automatic)'] = input_data['PaymentMethod'].apply(lambda x: 1 if x == 'Credit card (automatic)' else 0)
+
+    # Drop original categorical columns
+    input_data.drop(columns=['SeniorCitizen', 'PhoneService', 'Contract', 'PaperlessBilling', 'PaymentMethod',
+                             'gender', 'Partner', 'Dependents', 'MultipleLines', 'InternetService',
+                             'OnlineSecurity', 'OnlineBackup', 'DeviceProtection', 'TechSupport',
+                             'StreamingTV', 'StreamingMovies'], inplace=True)
+
+    return input_data
 
 def main():
     st.title('Telecom Customer Churn Prediction WEBAPP')
@@ -89,10 +154,9 @@ def main():
              ' To check the accuracy of the classifier, click on the Performance on Test Dataset button in the sidebar.'
              ' To predict, select the model you want to use from the dropdown box in the sidebar after choosing the user input data.')
 
-    
-
     st.sidebar.title('MENU')
-    task = st.sidebar.radio("Select Task", ["Predict", "Performance on Test Dataset", "Prediction History"])
+    task = st.sidebar.radio("Select Task",
+                            ["Predict", "File Upload Predict", "Performance on Test Dataset", "Prediction History"])
 
     if task == "Predict":
         st.subheader('Input Customer Details')
@@ -136,54 +200,33 @@ def main():
             "tenure": [tenure],
             "monthly_charges": [MonthlyCharges],
             "total_charges": [TotalCharges],
-            "senior_citizen": [1 if SeniorCitizen == "Yes" else 0],
-            "phone_service_No": [1 if PhoneService == "No" else 0],
-            "phone_service_Yes": [1 if PhoneService == "Yes" else 0],
-            "contract_Month-to-month": [1 if Contract == "Month-to-month" else 0],
-            "contract_One year": [1 if Contract == "One year" else 0],
-            "contract_Two year": [1 if Contract == "Two year" else 0],
-            "paperless_billing_No": [1 if PaperlessBilling == "No" else 0],
-            "paperless_billing_Yes": [1 if PaperlessBilling == "Yes" else 0],
-            "payment_method_Bank transfer (automatic)": [1 if PaymentMethod == "Bank transfer (automatic)" else 0],
-            "payment_method_Credit card (automatic)": [1 if PaymentMethod == "Credit card (automatic)" else 0],
-            "payment_method_Electronic check": [1 if PaymentMethod == "Electronic check" else 0],
-            "payment_method_Mailed check": [1 if PaymentMethod == "Mailed check" else 0],
-            "gender_Female": [1 if gender == "Female" else 0],
-            "gender_Male": [1 if gender == "Male" else 0],
-            "partner_No": [1 if Partner == "No" else 0],
-            "partner_Yes": [1 if Partner == "Yes" else 0],
-            "dependents_No": [1 if Dependents == "No" else 0],
-            "dependents_Yes": [1 if Dependents == "Yes" else 0],
-            "multiple_lines_No": [1 if MultipleLines == "No" else 0],
-            "multiple_lines_No phone service": [1 if MultipleLines == "No phone service" else 0],
-            "multiple_lines_Yes": [1 if MultipleLines == "Yes" else 0],
-            "internet_service_DSL": [1 if InternetService == "DSL" else 0],
-            "internet_service_Fiber optic": [1 if InternetService == "Fiber optic" else 0],
-            "internet_service_No": [1 if InternetService == "No" else 0],
-            "online_security_No": [1 if OnlineSecurity == "No" else 0],
-            "online_security_No internet service": [1 if OnlineSecurity == "No internet service" else 0],
-            "online_security_Yes": [1 if OnlineSecurity == "Yes" else 0],
-            "online_backup_No": [1 if OnlineBackup == "No" else 0],
-            "online_backup_No internet service": [1 if OnlineBackup == "No internet service" else 0],
-            "online_backup_Yes": [1 if OnlineBackup == "Yes" else 0],
-            "device_protection_No": [1 if DeviceProtection == "No" else 0],
-            "device_protection_No internet service": [1 if DeviceProtection == "No internet service" else 0],
-            "device_protection_Yes": [1 if DeviceProtection == "Yes" else 0],
-            "tech_support_No": [1 if TechSupport == "No" else 0],
-            "tech_support_No internet service": [1 if TechSupport == "No internet service" else 0],
-            "tech_support_Yes": [1 if TechSupport == "Yes" else 0],
-            "streaming_tv_No": [1 if StreamingTV == "No" else 0],
-            "streaming_tv_No internet service": [1 if StreamingTV == "No internet service" else 0],
-            "streaming_tv_Yes": [1 if StreamingTV == "Yes" else 0],
-            "streaming_movies_No": [1 if StreamingMovies == "No" else 0],
-            "streaming_movies_No internet service": [1 if StreamingMovies == "No internet service" else 0],
-            "streaming_movies_Yes": [1 if StreamingMovies == "Yes" else 0]
+            "gender": [gender],
+            "SeniorCitizen": [SeniorCitizen],
+            "Partner": [Partner],
+            "Dependents": [Dependents],
+            "PhoneService": [PhoneService],
+            "MultipleLines": [MultipleLines],
+            "InternetService": [InternetService],
+            "OnlineSecurity": [OnlineSecurity],
+            "OnlineBackup": [OnlineBackup],
+            "DeviceProtection": [DeviceProtection],
+            "TechSupport": [TechSupport],
+            "StreamingTV": [StreamingTV],
+            "StreamingMovies": [StreamingMovies],
+            "Contract": [Contract],
+            "PaperlessBilling": [PaperlessBilling],
+            "PaymentMethod": [PaymentMethod]
         })
 
-        model_name = st.sidebar.selectbox("Select Model", ["Logistic Regression", "KNN", "Random Forest", "Decision Tree", "XGBoost", "Neural Network", "CNN"])
+        input_data_encoded = encode_manual_input(input_data)
+
+        model_name = st.sidebar.selectbox("Select Model",
+                                          ["Logistic Regression", "KNN", "Random Forest", "Decision Tree", "XGBoost",
+                                           "Neural Network", "CNN"])
 
         if st.sidebar.button("Predict"):
-            prediction = predict_churn(input_data, model_name)
+            input_data_scaled = one_hot_encode_and_scale(input_data_encoded)
+            prediction = predict_churn(input_data_scaled, model_name)
             prediction = prediction[0] * 100  # Convert to percentage
             st.subheader('Prediction Result')
             st.write("Churn Probability:", round(float(prediction), 2), "%")
@@ -192,24 +235,53 @@ def main():
             else:
                 st.error('CHURN')
 
-            # Lưu kết quả dự đoán
+            # Save prediction result
             prediction_data = input_data.copy()
             prediction_data["churn_probability"] = round(float(prediction), 2)
             save_prediction(prediction_data)
 
+    elif task == "File Upload Predict":
+        st.subheader('Upload Customer Data')
+        uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
+        if uploaded_file:
+            input_data = pd.read_csv(uploaded_file)
+
+            input_data_encoded = encode_manual_input(input_data)
+
+            input_data_scaled = one_hot_encode_and_scale(input_data_encoded)
+
+            model_name = st.sidebar.selectbox("Select Model",
+                                              ["Logistic Regression", "KNN", "Random Forest", "Decision Tree",
+                                               "XGBoost", "Neural Network", "CNN"])
+
+            if st.sidebar.button("Predict"):
+                if model_name == "CNN":
+                    input_data_scaled = input_data_scaled.reshape(input_data_scaled.shape[0],
+                                                                  input_data_scaled.shape[1], 1)
+                predictions = predict_churn(input_data_scaled, model_name)
+                input_data['churn_probability'] = predictions * 100  # Convert to percentage
+                st.write(input_data)
+
+                # Download prediction results
+                csv = input_data.to_csv(index=False).encode('utf-8')
+                st.download_button(
+                    label="Download Predictions",
+                    data=csv,
+                    file_name='predictions.csv',
+                    mime='text/csv',
+                )
+
     elif task == "Performance on Test Dataset":
         st.subheader("Performance on The Test Dataset (ROC AUC Score):")
-        model_name = st.selectbox("Select Model", ["Logistic Regression", "KNN", "Random Forest", "Decision Tree", "XGBoost", "Neural Network", "CNN"])
+        model_name = st.selectbox("Select Model",
+                                  ["Logistic Regression", "KNN", "Random Forest", "Decision Tree", "XGBoost",
+                                   "Neural Network", "CNN"])
 
-        scaler = MinMaxScaler()
-        input_data_scaled = scaler.fit_transform(test_data.drop(columns=['churn']))
+        input_data_scaled = one_hot_encode_and_scale(test_data.drop(columns=['churn']))
 
-        if model_name in ["Logistic Regression", "KNN", "Random Forest", "Decision Tree", "XGBoost"]:
-            predictions = models[model_name].predict_proba(input_data_scaled)[:, 1]
-        elif model_name in ["Neural Network", "CNN"]:
-            if model_name == "CNN":
-                input_data_scaled = input_data_scaled.reshape(input_data_scaled.shape[0], input_data_scaled.shape[1], 1)
-            predictions = models[model_name].predict(input_data_scaled)
+        if model_name == "CNN":
+            input_data_scaled = input_data_scaled.reshape(input_data_scaled.shape[0], input_data_scaled.shape[1], 1)
+        predictions = predict_churn(input_data_scaled, model_name)
 
         actual_labels = test_data['churn']
         roc_auc = roc_auc_score(actual_labels, predictions)
